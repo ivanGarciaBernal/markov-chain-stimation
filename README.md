@@ -1,2 +1,2 @@
 # markov-chain-stimation
-stimation of markov chains 
+stimation of transition matrix for the applied math students at UAEH
