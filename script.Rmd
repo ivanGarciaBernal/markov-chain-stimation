@@ -1,0 +1,103 @@
+---
+title: "Matriz de transicion"
+author: "Ana Olmedo, Iván García"
+date: "2023-12-01"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+library(pacman)
+p_load(dplyr,knitr)
+```
+
+Usamos como datos de referencia las generaciones
+1402,1502,1601,1602,1702
+
+```{r}
+## cargamos los archivos
+for(x in c(1402,1502,1601,1602,1702)){
+  nombre <- paste0('gen_',x)
+  nombres = c(paste0('sem',1:10),
+              'egresados',
+              'poblacion')
+  assign(nombre,
+         read.csv(paste0(nombre,'.csv'), 
+                  header = FALSE,
+                  col.names = nombres))
+}
+
+prob_trans = function(X){
+  P = matrix(rep(0,12^2),nrow = 12,ncol = 12)
+  for(i in 1:9){
+    P[i,i+1] = X[i+1,i+1] / X[i,i] ## probabilidad de pasar al siguiente grado
+    prob.avanzar = P[i,i+1]
+    prob.retencion = X$poblacion[i+1] / X$poblacion[i]
+    prob.desercion = 1 - prob.retencion
+    
+    # ## aclarar un poco esto
+    # if(prob.avanzar + prob.desercion > 1){
+    #   P[i,11] = abs(prob.desercion - abs(prob.avanzar + prob.desercion - 1))
+    # }else{
+    #   P[i,11] = prob.desercion
+    # }
+    }
+  
+  P[10,12] = X[10,11] / X[10,10] #probabilidad de egresar estando en decimo
+  
+  # for(i in 1:10){
+  #   if(sum(P[i,]) < 1){
+  #     P[i,i] = 1 - sum(P[i,])
+  #   }
+  # }
+  
+
+  
+  #estados absorbentes; egresar y finalizar
+  P[11,11] = 1
+  P[12,12] = 1
+  nombres = c(paste0('S',1:10),
+              'D',
+              'F')
+  rownames(P) = nombres
+  colnames(P) = nombres
+  return(P)
+}
+
+es.positivo = function(x){
+  if(x >= 0){
+    return(TRUE)
+  }else{
+    return(FALSE)
+  }
+}
+
+columnas.suman.uno = function(x){
+  return(all(rowSums(x) == rep(1,nrow(x))))
+}
+
+es.matriz.prob = function(x){
+  all(unlist(lapply(x,es.positivo))) & columnas.suman.uno(x)
+}
+
+generaciones = list(gen_1402,
+                    gen_1502,
+                    gen_1601,
+                    gen_1602,
+                    gen_1702)
+
+matrices_transicion = lapply(generaciones,prob_trans)
+options(digits = 2)
+
+muestra_matriz = function(i){
+  cohortes = paste('Cohorte',c(1402,1502,1601,1602,1702))
+  matrices_transicion[[i]] %>% kable(.,caption = cohortes[i])
+}
+
+
+
+muestra_matriz(1)
+muestra_matriz(2)
+muestra_matriz(3)
+muestra_matriz(4)
+muestra_matriz(5)
+```
