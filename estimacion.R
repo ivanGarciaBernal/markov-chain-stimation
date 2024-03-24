@@ -81,7 +81,12 @@ colnames(a2023) = nombres
 b2023 = lee_año(2023,2)[,c(2,4)]
 b2023 = b2023[grepl("[0-9]{6}",b2023[,1]),]
 colnames(b2023) = nombres
+#b2023$cuenta = as.integer(b2023$cuenta)
 
+#2024 primer periodo
+a2024 = lee_año(2024,1)[,c(1,3)]
+colnames(a2024) = nombres
+a2024$cuenta = as.character(a2024$cuenta)
 
 ## Hasta este punto se han cargado todos los datos y se encuentran limpios
 ## cada variable consta de una columna 
@@ -124,7 +129,10 @@ calcula_prob = function(matriz){
   k = rowSums(matriz)
   k[k == 0] = 1
   k = 1/k
-  return(diag(k) %*% matriz)
+  m = diag(k) %*% matriz
+  m[11,11] = 1
+  m[12,12] = 1
+  return(m)
 }
 
 
@@ -136,7 +144,8 @@ matrices = list(
   cuenta(a2017,b2017),
   cuenta(a2021,b2021),
   cuenta(b2022,a2023),
-  cuenta(a2023,b2023)
+  cuenta(a2023,b2023),
+  cuenta(b2023,a2024)
 )
 
 prob_matrices = lapply(matrices,calcula_prob)
@@ -146,3 +155,4 @@ prob_matrices = lapply(matrices,calcula_prob)
 
 M = Reduce("+",matrices)
 P = calcula_prob(M)
+print(P)
